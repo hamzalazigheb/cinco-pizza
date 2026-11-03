@@ -56,6 +56,7 @@ export default function PizzaCustomizeModal({ pizza, onClose }: Props) {
   }
 
   function handleAdd() {
+    if (!pizza) return;
     addItem({
       pizzaId:     pizza.id,
       name:        pizza.name,
