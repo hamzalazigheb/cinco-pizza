@@ -1,0 +1,322 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ═══════════════════════════════════════════════════════════════
+   CINCO PIZZA — Premium Italian Color System
+   Primary Tomato Red  #C92326
+   Warm Cream          #F5EBDD
+   Charcoal            #24221F
+   Golden Cheese       #D9A441
+   Olive Green         #526344
+   Pure White          #FFFFFF
+   Hover Red           #A91D20
+═══════════════════════════════════════════════════════════════ */
+
+@theme inline {
+  /* ── Brand tokens ── */
+  --color-red:      #C92326;
+  --color-red-dark: #A91D20;
+  --color-cream:    #F5EBDD;
+  --color-charcoal: #24221F;
+  --color-gold:     #D9A441;
+  --color-olive:    #526344;
+  --color-white:    #FFFFFF;
+
+  /* ── Semantic aliases ── */
+  --color-primary:           #C92326;
+  --color-primary-dark:      #A91D20;
+  --color-primary-foreground:#FFFFFF;
+  --color-background:        #F5EBDD;
+  --color-foreground:        #24221F;
+  --color-card:              #FFFFFF;
+  --color-card-foreground:   #24221F;
+  --color-accent:            #D9A441;
+  --color-accent-foreground: #24221F;
+  --color-muted:             #EDE3D3;
+  --color-muted-foreground:  #6B5F52;
+  --color-border:            #E2D5C3;
+  --color-ring:              #C92326;
+
+  /* ── Typography ── */
+  --font-sans:    var(--font-inter);
+  --font-display: var(--font-playfair);
+  --font-ui:      var(--font-space);
+  --font-mono:    monospace;
+
+  /* ── Radius ── */
+  --radius:    0.75rem;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-2xl:2rem;
+}
+
+/* ── shadcn/radix ── */
+:root {
+  --background:            #F5EBDD;
+  --foreground:            #24221F;
+  --card:                  #FFFFFF;
+  --card-foreground:       #24221F;
+  --popover:               #FFFFFF;
+  --popover-foreground:    #24221F;
+  --primary:               #C92326;
+  --primary-foreground:    #FFFFFF;
+  --secondary:             #F5EBDD;
+  --secondary-foreground:  #24221F;
+  --muted:                 #EDE3D3;
+  --muted-foreground:      #6B5F52;
+  --accent:                #D9A441;
+  --accent-foreground:     #24221F;
+  --destructive:           #C92326;
+  --border:                #E2D5C3;
+  --input:                 #E2D5C3;
+  --ring:                  #C92326;
+  --radius:                0.75rem;
+}
+
+/* ═══════════════════ BASE ═══════════════════ */
+@layer base {
+  * { @apply border-border; }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
+
+  body {
+    background: #F5EBDD;
+    color: #24221F;
+    font-family: var(--font-inter), sans-serif;
+    font-size: 16px;
+    line-height: 1.65;
+    overflow-x: hidden;
+    /* Safe area for notched phones */
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  h1, h2, h3 {
+    font-family: var(--font-playfair), serif;
+    line-height: 1.1;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: #24221F;
+  }
+
+  h4, h5, h6 {
+    font-family: var(--font-space), sans-serif;
+    font-weight: 600;
+    line-height: 1.25;
+    color: #24221F;
+  }
+
+  p { color: #4A4037; }
+}
+
+/* ═══════════════════ SCROLLBAR ═══════════════════ */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: #F5EBDD; }
+::-webkit-scrollbar-thumb { background: #C92326; border-radius: 3px; }
+
+/* ═══════════════════ TYPOGRAPHY UTILITIES ═══════════════════ */
+.font-display {
+  font-family: var(--font-playfair), serif;
+  font-weight: 700;
+}
+.font-ui {
+  font-family: var(--font-space), sans-serif;
+}
+.overline {
+  font-family: var(--font-space), sans-serif;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+/* ═══════════════════ BUTTONS ═══════════════════ */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: #C92326;
+  color: #FFFFFF;
+  font-family: var(--font-space), sans-serif;
+  font-weight: 600;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.85rem 2rem;
+  border-radius: 9999px;
+  border: none;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.18s ease, transform 0.14s ease, box-shadow 0.18s ease;
+  box-shadow: 0 4px 16px rgba(201,35,38,0.25);
+}
+.btn-primary:hover {
+  background: #A91D20;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(201,35,38,0.35);
+}
+.btn-primary:active { transform: none; }
+
+/* Keep .btn-red as alias */
+.btn-red {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: #C92326;
+  color: #FFFFFF;
+  font-family: var(--font-space), sans-serif;
+  font-weight: 600;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.85rem 2rem;
+  border-radius: 9999px;
+  border: none;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.18s ease, transform 0.14s ease, box-shadow 0.18s ease;
+  box-shadow: 0 4px 16px rgba(201,35,38,0.25);
+}
+.btn-red:hover {
+  background: #A91D20;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(201,35,38,0.35);
+}
+.btn-red:active { transform: none; }
+
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: transparent;
+  color: #24221F;
+  font-family: var(--font-space), sans-serif;
+  font-weight: 600;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.85rem 2rem;
+  border-radius: 9999px;
+  border: 1.5px solid #24221F;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+.btn-outline:hover {
+  background: #24221F;
+  color: #F5EBDD;
+}
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: transparent;
+  color: inherit;
+  font-family: var(--font-space), sans-serif;
+  font-weight: 600;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.85rem 2rem;
+  border-radius: 9999px;
+  border: 1.5px solid currentColor;
+  text-decoration: none;
+  cursor: pointer;
+  transition: opacity 0.18s;
+}
+.btn-ghost:hover { opacity: 0.6; }
+
+/* ═══════════════════ PRICE PILL ═══════════════════ */
+.price-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.28rem 0.75rem;
+  border-radius: 9999px;
+  font-family: var(--font-space), sans-serif;
+  font-weight: 600;
+  font-size: 0.78rem;
+}
+.price-senior {
+  background: #FEF0F0;
+  color: #C92326;
+}
+.price-mega {
+  background: #FBF5E8;
+  color: #8A6420;
+}
+
+/* ═══════════════════ CATEGORY BADGES ═══════════════════ */
+.cat-tomate { background: #FEF0F0; color: #C92326; }
+.cat-creme  { background: #FFFBEB; color: #92400E; }
+.cat-bbq    { background: #FFF7ED; color: #C2410C; }
+.cat-curry  { background: #F0F9EE; color: #526344; }
+
+/* ═══════════════════ IMAGE ZOOM ═══════════════════ */
+.img-zoom { overflow: hidden; }
+.img-zoom img {
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.img-zoom:hover img { transform: scale(1.06); }
+
+/* ═══════════════════ SECTION SPACING ═══════════════════ */
+.section-py { padding-top: 3.5rem; padding-bottom: 3.5rem; }
+@media (min-width: 640px) {
+  .section-py { padding-top: 5rem; padding-bottom: 5rem; }
+}
+@media (min-width: 768px) {
+  .section-py { padding-top: 7rem; padding-bottom: 7rem; }
+}
+
+/* ═══════════════════ CARD SHADOW ═══════════════════ */
+.card-shadow {
+  box-shadow: 0 2px 12px rgba(36,34,31,0.06), 0 1px 3px rgba(36,34,31,0.04);
+  transition: box-shadow 0.25s ease, transform 0.25s ease;
+}
+.card-shadow:hover {
+  box-shadow: 0 8px 32px rgba(36,34,31,0.1), 0 2px 8px rgba(36,34,31,0.06);
+  transform: translateY(-2px);
+}
+
+/* ═══════════════════ DECORATIVE ═══════════════════ */
+.gold-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #D9A441;
+  display: inline-block;
+}
+.olive-tag {
+  display: inline-flex; align-items: center;
+  background: #526344; color: #FFFFFF;
+  font-family: var(--font-space), sans-serif;
+  font-size: 0.6rem; font-weight: 600;
+  letter-spacing: 0.15em; text-transform: uppercase;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+}
+.red-tag {
+  display: inline-flex; align-items: center;
+  background: #C92326; color: #FFFFFF;
+  font-family: var(--font-space), sans-serif;
+  font-size: 0.6rem; font-weight: 600;
+  letter-spacing: 0.15em; text-transform: uppercase;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+}
+
+/* ═══════════════════ GSAP PRE-STATE ═══════════════════ */
+.gsap-reveal { will-change: transform, opacity; }
