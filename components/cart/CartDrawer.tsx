@@ -1,8 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Plus, Minus, Trash2, Phone, ShoppingBag } from "lucide-react";
+import { X, Plus, Minus, Trash2, ShoppingBag, CheckCircle2, Loader2 } from "lucide-react";
 import { useCartStore } from "@/store/cartStore";
 
 const sizeLabel = { senior: "Senior", mega: "Méga" };
@@ -11,8 +12,51 @@ export default function CartDrawer() {
   const { items, isOpen, closeCart, removeItem, updateQty, clearCart, total, count } =
     useCartStore();
 
+  const [ordering,  setOrdering]  = useState(false);
+  const [orderId,   setOrderId]   = useState<string | null>(null);
+  const [orderError,setOrderError]= useState("");
+
   const itemCount = count();
   const cartTotal = total();
+
+  async function handleOrder() {
+    setOrdering(true);
+    setOrderError("");
+    try {
+      const res = await fetch("/api/orders", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          items: items.map((i) => ({
+            name:        i.name,
+            size:        i.size,
+            quantity:    i.quantity,
+            price:       i.price,
+            ingredients: i.ingredients,
+            image:       i.image,
+          })),
+          total: cartTotal,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setOrderId(data.orderId);
+        clearCart();
+      } else {
+        setOrderError(data.error || "Erreur lors de la commande");
+      }
+    } catch {
+      setOrderError("Erreur réseau. Réessayez.");
+    } finally {
+      setOrdering(false);
+    }
+  }
+
+  function handleClose() {
+    setOrderId(null);
+    setOrderError("");
+    closeCart();
+  }
 
   return (
     <AnimatePresence>
@@ -25,7 +69,7 @@ export default function CartDrawer() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[70] bg-[#24221F]/50 backdrop-blur-sm"
-            onClick={closeCart}
+            onClick={handleClose}
           />
 
           {/* Drawer */}
@@ -54,10 +98,10 @@ export default function CartDrawer() {
                 )}
               </div>
               <button
-                onClick={closeCart}
+                onClick={handleClose}
                 className="w-8 h-8 rounded-full bg-white flex items-center justify-center
                   text-[#24221F] hover:bg-[#EDE3D3] transition cursor-pointer shadow-sm"
-              >
+                >
                 <X className="h-4 w-4" />
               </button>
             </div>
@@ -171,8 +215,33 @@ export default function CartDrawer() {
               )}
             </div>
 
+            {/* ── Footer: success state ── */}
+            {orderId && (
+              <div className="shrink-0 px-4 sm:px-5 py-8 border-t border-[#E2D5C3]
+                bg-[#F5EBDD] flex flex-col items-center gap-4 text-center">
+                <div className="w-14 h-14 rounded-full bg-[#526344]/15 flex items-center justify-center">
+                  <CheckCircle2 className="h-7 w-7 text-[#526344]" />
+                </div>
+                <div>
+                  <p className="font-display text-xl text-[#24221F]">Commande envoyée !</p>
+                  <p className="font-ui text-xs text-[#8C7B6A] mt-1">
+                    Référence : <strong className="text-[#C92326]">#{orderId}</strong>
+                  </p>
+                  <p className="font-ui text-xs text-[#8C7B6A] mt-2">
+                    Nous préparons votre commande 🍕
+                  </p>
+                </div>
+                <button
+                  onClick={handleClose}
+                  className="btn-primary px-6 py-2.5 text-sm"
+                >
+                  Fermer
+                </button>
+              </div>
+            )}
+
             {/* ── Footer: total + CTA ── */}
-            {items.length > 0 && (
+            {!orderId && items.length > 0 && (
               <div className="shrink-0 px-4 sm:px-5 py-4 sm:py-5 border-t border-[#E2D5C3] bg-[#F5EBDD] space-y-3">
 
                 {/* Summary */}
@@ -198,14 +267,27 @@ export default function CartDrawer() {
                   💵 Paiement en <strong>espèces uniquement</strong> à la livraison
                 </p>
 
-                {/* Phone CTA */}
-                <a
-                  href="tel:+33000000000"
-                  className="btn-primary w-full justify-center gap-2.5 text-sm py-3.5"
+                {/* Error */}
+                {orderError && (
+                  <p className="font-ui text-[0.72rem] text-[#C92326] text-center
+                    bg-[#C92326]/8 rounded-lg py-2 px-3">
+                    {orderError}
+                  </p>
+                )}
+
+                {/* Confirm order CTA */}
+                <button
+                  onClick={handleOrder}
+                  disabled={ordering}
+                  className="btn-primary w-full justify-center gap-2.5 text-sm py-3.5
+                    disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
                 >
-                  <Phone className="h-4 w-4" />
-                  Commander par téléphone
-                </a>
+                  {ordering ? (
+                    <><Loader2 className="h-4 w-4 animate-spin" /> Envoi en cours...</>
+                  ) : (
+                    <><ShoppingBag className="h-4 w-4" /> Confirmer la commande</>
+                  )}
+                </button>
 
                 {/* Clear cart */}
                 <button

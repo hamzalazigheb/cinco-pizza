@@ -1,36 +1,151 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🍕 Cinco Pizza — Restaurant Web App
 
-## Getting Started
+A premium, full-stack restaurant web application built with **Next.js 16**, featuring a beautiful customer-facing storefront and a complete admin dashboard for order management.
 
-First, run the development server:
+---
+
+## ✨ Features
+
+### 🛍️ Customer Storefront
+- Animated hero section with GSAP scroll effects
+- Full pizza menu with 39+ pizzas across 4 categories
+- Pizza customization modal (size, ingredients)
+- Persistent shopping cart (Zustand + localStorage)
+- Cart drawer with order confirmation
+- Smooth scroll via Lenis
+- Fully responsive (mobile-first)
+
+### 🖥️ Admin Dashboard
+- Protected login page (HTTP-only cookie auth)
+- SaaS-style dashboard with sidebar navigation
+- Real-time order board in 3 columns:
+  - 🔴 **Nouvelles commandes**
+  - 🟡 **En préparation**
+  - 🟢 **Terminées**
+- KPI cards (total orders, revenue, status counts)
+- One-click order status transitions
+- Auto-refresh every 15 seconds
+- Fully responsive (desktop columns / mobile tabs)
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Framework | Next.js 16 (App Router, Turbopack) |
+| Language | TypeScript |
+| Styling | Tailwind CSS v4 |
+| Animation | Framer Motion + GSAP |
+| State | Zustand (cart) |
+| Auth | HTTP-only cookies (no external library) |
+| Storage | In-memory (demo) |
+| Fonts | Playfair Display · Inter · Space Grotesk |
+| Icons | Lucide React |
+| Deployment | Vercel |
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js 18+
+- npm
+
+### Installation
+
+```bash
+git clone https://github.com/hamzalazigheb/cinco-pizza.git
+cd cinco-pizza
+npm install
+```
+
+### Environment Variables
+
+Create a `.env.local` file at the root:
+
+```env
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=your_password
+ADMIN_TOKEN=your_secret_token
+```
+
+### Run locally
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) for the storefront.
+Open [http://localhost:3000/admin](http://localhost:3000/admin) for the dashboard.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 📁 Project Structure
 
-## Learn More
+```
+app/
+├── page.tsx              # Customer storefront
+├── login/page.tsx        # Admin login
+├── admin/
+│   ├── layout.tsx        # Sidebar + topbar shell
+│   └── page.tsx          # Order management dashboard
+├── api/
+│   ├── orders/           # POST (create) · GET (list) · PATCH (status)
+│   └── auth/             # Login · Logout
+components/
+├── sections/             # Hero, Menu, Offers, About, Delivery...
+├── cart/                 # CartButton, CartDrawer, PizzaCustomizeModal
+├── layout/               # Header, Footer
+data/
+└── pizzas.ts             # 39 pizzas with full data
+store/
+└── cartStore.ts          # Zustand cart store
+lib/
+└── orders.ts             # In-memory order store (demo)
+```
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🔐 Admin Access
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Route | Description |
+|---|---|
+| `/login` | Admin login page |
+| `/admin` | Protected dashboard |
 
-## Deploy on Vercel
+Credentials are set via environment variables — never hardcoded.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🌐 Deploy on Vercel
+
+1. Push to GitHub
+2. Import the repo on [vercel.com](https://vercel.com)
+3. Add environment variables in **Settings → Environment Variables**:
+   - `ADMIN_USERNAME`
+   - `ADMIN_PASSWORD`
+   - `ADMIN_TOKEN`
+4. Click **Deploy** ✅
+
+---
+
+## 📸 Screenshots
+
+> Storefront · Admin Dashboard · Mobile view
+
+---
+
+## 📄 License
+
+MIT — feel free to use this project as a template for your own restaurant website.
+
+---
+
+<div align="center">
+  <p>Built with ❤️ by <strong>Hamza</strong></p>
+  <p>
+    <a href="https://github.com/hamzalazigheb/cinco-pizza">GitHub</a> ·
+    <a href="https://cinco-pizza.vercel.app">Live Demo</a>
+  </p>
+</div>
