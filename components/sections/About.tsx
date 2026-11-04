@@ -9,7 +9,7 @@ if (typeof window !== "undefined") gsap.registerPlugin(ScrollTrigger);
 const stats = [
   { val: "39",   label: "pizzas artisanales", color: "text-[#C92326]" },
   { val: "100%", label: "fait maison",         color: "text-[#D9A441]" },
-  { val: "0 €",  label: "livraison*",          color: "text-[#526344]" },
+  { val: "5 €",  label: "livraison",            color: "text-[#C92326]" },
 ];
 
 export default function About() {
@@ -103,7 +103,7 @@ export default function About() {
 
         {/* ── Bottom footnote ── */}
         <p className="mt-4 text-center font-ui text-[0.62rem] text-[#B0A090]">
-          * Livraison offerte selon zone. Paiement en espèces uniquement.
+          Frais de livraison : 5 € · Paiement en espèces uniquement.
         </p>
 
       </div>

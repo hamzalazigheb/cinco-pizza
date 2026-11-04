@@ -222,7 +222,7 @@ export default function Hero() {
             {[
               { val: "39",   sub: "Pizzas" },
               { val: "100%", sub: "Fait maison" },
-              { val: "0 €",  sub: "Livraison*" },
+              { val: "5 €",  sub: "Livraison" },
             ].map((s) => (
               <div key={s.sub} className="h-stat px-4 first:pl-0 last:pr-0">
                 <div className="font-display text-xl sm:text-2xl text-[#24221F] leading-none">{s.val}</div>

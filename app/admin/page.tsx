@@ -7,7 +7,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   RefreshCw, Clock, Loader2, ChefHat,
   CheckCheck, Bell, ShoppingBag, TrendingUp,
-  Banknote, Pizza, ChevronRight,
+  Banknote, Pizza, ChevronRight, Phone, MapPin,
+  Building2, MessageSquare, Truck, KeyRound, AlertCircle,
 } from "lucide-react";
 import type { Order } from "@/lib/orders";
 
@@ -90,6 +91,12 @@ const STATUS_CFG = {
     dot:    "bg-[#D9A441]",
     pulse:  false,
   },
+  "en livraison": {
+    label:  "En livraison",
+    badge:  "bg-[#EFF6FF] text-[#1D4ED8] border border-[#3B82F6]/20",
+    dot:    "bg-[#3B82F6]",
+    pulse:  true,
+  },
   "terminé": {
     label:  "Terminé",
     badge:  "bg-[#F0FDF4] text-[#168653] border border-[#168653]/20",
@@ -99,15 +106,30 @@ const STATUS_CFG = {
 } as const;
 
 function OrderCard({
-  order, updating, onStatus,
+  order, updating, onStatus, onConfirmDelivery,
 }: {
   order: Order;
   updating: boolean;
   onStatus: (id: string, s: Order["status"]) => void;
+  onConfirmDelivery: (id: string, code: string) => Promise<boolean>;
 }) {
   const cfg      = STATUS_CFG[order.status];
   const totalQty = order.items.reduce((s, i) => s + i.quantity, 0);
   const done     = order.status === "terminé";
+
+  const [codeInput,  setCodeInput]  = useState("");
+  const [codeError,  setCodeError]  = useState("");
+  const [confirming, setConfirming] = useState(false);
+
+  async function handleConfirm() {
+    if (!codeInput.trim()) return;
+    setConfirming(true);
+    setCodeError("");
+    const ok = await onConfirmDelivery(order.id, codeInput.trim());
+    if (!ok) setCodeError("Code incorrect. Réessayez.");
+    setConfirming(false);
+    if (ok) setCodeInput("");
+  }
 
   return (
     <motion.article
@@ -126,6 +148,7 @@ function OrderCard({
       <div className={`h-[3px] w-full ${
         order.status === "nouveau"        ? "bg-[#C92326]" :
         order.status === "en préparation" ? "bg-[#D9A441]" :
+        order.status === "en livraison"   ? "bg-[#3B82F6]" :
         "bg-[#168653]"
       }`} />
 
@@ -190,6 +213,42 @@ function OrderCard({
           ))}
         </div>
 
+        {/* ── Customer info ── */}
+        {order.customer && (
+          <div className="bg-[#F9F5EF] rounded-xl p-3 mb-3 border border-[#EDE3D3] space-y-1.5">
+            <p className="font-ui text-[0.6rem] font-700 uppercase tracking-wider text-[#8C7B6A] mb-2">
+              Client
+            </p>
+            <div className="flex items-center gap-2">
+              <ShoppingBag className="h-3 w-3 text-[#8C7B6A] shrink-0" />
+              <span className="font-ui text-[0.75rem] font-600 text-[#24221F]">{order.customer.name}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Phone className="h-3 w-3 text-[#8C7B6A] shrink-0" />
+              <a href={`tel:${order.customer.phone}`}
+                className="font-ui text-[0.73rem] text-[#C92326] hover:underline">
+                {order.customer.phone}
+              </a>
+            </div>
+            <div className="flex items-start gap-2">
+              <MapPin className="h-3 w-3 text-[#8C7B6A] shrink-0 mt-0.5" />
+              <span className="font-ui text-[0.73rem] text-[#24221F]">{order.customer.address}</span>
+            </div>
+            {order.customer.floor && (
+              <div className="flex items-center gap-2">
+                <Building2 className="h-3 w-3 text-[#8C7B6A] shrink-0" />
+                <span className="font-ui text-[0.73rem] text-[#24221F]">{order.customer.floor}</span>
+              </div>
+            )}
+            {order.customer.note && (
+              <div className="flex items-start gap-2">
+                <MessageSquare className="h-3 w-3 text-[#8C7B6A] shrink-0 mt-0.5" />
+                <span className="font-ui text-[0.7rem] text-[#6B5F52] italic">{order.customer.note}</span>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Payment note */}
         <div className="flex items-center gap-1.5 mb-3 pb-3 border-b border-[#F0E8DC]">
           <Banknote className="h-3 w-3 text-[#8C7B6A]" />
@@ -217,17 +276,58 @@ function OrderCard({
           </button>
         ) : order.status === "en préparation" ? (
           <button
-            onClick={() => onStatus(order.id, "terminé")}
+            onClick={() => onStatus(order.id, "en livraison")}
             className="w-full flex items-center justify-center gap-2
-              bg-[#168653]/10 hover:bg-[#168653]/15
-              text-[#168653] border border-[#168653]/20
+              bg-[#3B82F6]/10 hover:bg-[#3B82F6]/20
+              text-[#1D4ED8] border border-[#3B82F6]/20
               font-ui text-[0.72rem] font-600 rounded-xl py-2.5
               transition-all duration-200 cursor-pointer group"
           >
-            <CheckCheck className="h-3.5 w-3.5" />
-            Marquer comme terminé
+            <Truck className="h-3.5 w-3.5" />
+            Partir en livraison
             <ChevronRight className="h-3.5 w-3.5 ml-auto opacity-0 group-hover:opacity-100 transition" />
           </button>
+        ) : order.status === "en livraison" ? (
+          <div className="space-y-2">
+            <p className="font-ui text-[0.65rem] text-[#1D4ED8] flex items-center gap-1.5">
+              <KeyRound className="h-3 w-3" />
+              Entrez le code du client pour confirmer la livraison
+            </p>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                maxLength={4}
+                value={codeInput}
+                onChange={(e) => { setCodeInput(e.target.value.replace(/\D/, "")); setCodeError(""); }}
+                placeholder="0000"
+                className="flex-1 bg-white border border-[#E2D5C3] rounded-xl px-3 py-2.5
+                  font-display text-xl text-center text-[#24221F] tracking-[0.3em]
+                  focus:outline-none focus:border-[#168653] focus:ring-1 focus:ring-[#168653]/20
+                  transition"
+              />
+              <button
+                onClick={handleConfirm}
+                disabled={confirming || codeInput.length < 4}
+                className="flex items-center justify-center gap-1.5 px-4
+                  bg-[#168653]/10 hover:bg-[#168653]/20
+                  text-[#168653] border border-[#168653]/20
+                  font-ui text-[0.72rem] font-600 rounded-xl
+                  transition-all duration-200 cursor-pointer
+                  disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {confirming
+                  ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  : <CheckCheck className="h-3.5 w-3.5" />
+                }
+                OK
+              </button>
+            </div>
+            {codeError && (
+              <p className="font-ui text-[0.65rem] text-[#C92326] flex items-center gap-1">
+                <AlertCircle className="h-3 w-3" />{codeError}
+              </p>
+            )}
+          </div>
         ) : (
           <div className="flex items-center gap-2 text-[#168653] font-ui text-[0.72rem] py-0.5">
             <CheckCheck className="h-3.5 w-3.5" />
@@ -362,21 +462,38 @@ export default function AdminPage() {
     }
   }
 
+  async function handleConfirmDelivery(orderId: string, code: string): Promise<boolean> {
+    const res = await fetch(`/api/orders/${orderId}/confirm`, {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify({ code }),
+    });
+    if (res.ok) {
+      setOrders((prev) =>
+        prev.map((o) => o.id === orderId ? { ...o, status: "terminé" } : o)
+      );
+      return true;
+    }
+    return false;
+  }
+
   /* Computed */
   const nouveau       = orders.filter((o) => o.status === "nouveau");
   const enPreparation = orders.filter((o) => o.status === "en préparation");
+  const enLivraison   = orders.filter((o) => o.status === "en livraison");
   const termine       = orders.filter((o) => o.status === "terminé");
   const revenue       = orders.reduce((s, o) => s + o.total, 0);
   const hasNew        = nouveau.length > 0;
   const dateLabel     = useToday();
 
   const TABS = [
-    { label: "Nouvelles", count: nouveau.length,       color: "text-[#C92326]" },
-    { label: "En prépa",  count: enPreparation.length, color: "text-[#B45309]" },
-    { label: "Terminées", count: termine.length,        color: "text-[#168653]" },
+    { label: "Nouvelles",   count: nouveau.length,       color: "text-[#C92326]" },
+    { label: "En prépa",    count: enPreparation.length, color: "text-[#B45309]" },
+    { label: "Livraison",   count: enLivraison.length,   color: "text-[#1D4ED8]" },
+    { label: "Terminées",   count: termine.length,       color: "text-[#168653]" },
   ];
 
-  const tabOrders = [nouveau, enPreparation, termine][tab];
+  const tabOrders = [nouveau, enPreparation, enLivraison, termine][tab];
 
   return (
     <div className="min-h-screen bg-[#F0EBE3]">
@@ -424,7 +541,7 @@ export default function AdminPage() {
       <div className="px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
         {/* ══ KPI CARDS ═══════════════════════════════════════ */}
-        <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
+        <div className="grid grid-cols-2 xl:grid-cols-5 gap-3 sm:gap-4">
           <KpiCard
             icon={ShoppingBag}
             label="Total commandes"
@@ -446,6 +563,13 @@ export default function AdminPage() {
             value={enPreparation.length}
             sub="en cuisine"
             color="bg-[#D9A441]"
+          />
+          <KpiCard
+            icon={Truck}
+            label="En livraison"
+            value={enLivraison.length}
+            sub="en route"
+            color="bg-[#3B82F6]"
           />
           <KpiCard
             icon={TrendingUp}
@@ -477,8 +601,8 @@ export default function AdminPage() {
 
             {loading ? <LoadingState /> : (
               <>
-                {/* ── Desktop 3-column grid ── */}
-                <div className="hidden md:grid grid-cols-3 gap-4">
+                {/* ── Desktop 4-column grid ── */}
+                <div className="hidden md:grid grid-cols-4 gap-4">
                   <Column
                     title="Nouvelles commandes"
                     count={nouveau.length}
@@ -488,7 +612,9 @@ export default function AdminPage() {
                   >
                     {nouveau.map((o) => (
                       <OrderCard key={o.id} order={o}
-                        updating={updating === o.id} onStatus={handleStatus} />
+                        updating={updating === o.id}
+                        onStatus={handleStatus}
+                        onConfirmDelivery={handleConfirmDelivery} />
                     ))}
                   </Column>
 
@@ -500,7 +626,24 @@ export default function AdminPage() {
                   >
                     {enPreparation.map((o) => (
                       <OrderCard key={o.id} order={o}
-                        updating={updating === o.id} onStatus={handleStatus} />
+                        updating={updating === o.id}
+                        onStatus={handleStatus}
+                        onConfirmDelivery={handleConfirmDelivery} />
+                    ))}
+                  </Column>
+
+                  <Column
+                    title="En livraison"
+                    count={enLivraison.length}
+                    dot="bg-[#3B82F6]"
+                    dotPulse={enLivraison.length > 0}
+                    emptyMsg="Aucune commande en livraison"
+                  >
+                    {enLivraison.map((o) => (
+                      <OrderCard key={o.id} order={o}
+                        updating={updating === o.id}
+                        onStatus={handleStatus}
+                        onConfirmDelivery={handleConfirmDelivery} />
                     ))}
                   </Column>
 
@@ -512,7 +655,9 @@ export default function AdminPage() {
                   >
                     {termine.map((o) => (
                       <OrderCard key={o.id} order={o}
-                        updating={updating === o.id} onStatus={handleStatus} />
+                        updating={updating === o.id}
+                        onStatus={handleStatus}
+                        onConfirmDelivery={handleConfirmDelivery} />
                     ))}
                   </Column>
                 </div>
@@ -559,14 +704,21 @@ export default function AdminPage() {
                             rounded-2xl py-10 text-center">
                             <ShoppingBag className="h-6 w-6 text-[#C9B9A8]" />
                             <p className="font-ui text-[0.72rem] text-[#8C7B6A]">
-                              {["Aucune nouvelle commande", "Aucune commande en cours", "Aucune commande terminée"][tab]}
+                              {[
+                                "Aucune nouvelle commande",
+                                "Aucune commande en cours",
+                                "Aucune commande en livraison",
+                                "Aucune commande terminée",
+                              ][tab]}
                             </p>
                           </div>
                         ) : (
                           <div className="space-y-3">
                             {tabOrders.map((o) => (
                               <OrderCard key={o.id} order={o}
-                                updating={updating === o.id} onStatus={handleStatus} />
+                                updating={updating === o.id}
+                                onStatus={handleStatus}
+                                onConfirmDelivery={handleConfirmDelivery} />
                             ))}
                           </div>
                         )}

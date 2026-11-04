@@ -88,7 +88,7 @@ export default function Delivery() {
                 Appeler maintenant
               </a>
               <p className="mt-4 text-[#8C7B6A] text-xs font-ui">
-                * Livraison offerte selon zone. Paiement en espèces uniquement.
+                Frais de livraison : 5 € · Paiement en espèces uniquement.
               </p>
             </div>
           </div>
