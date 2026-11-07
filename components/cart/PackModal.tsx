@@ -7,7 +7,9 @@ import { X, Plus, Check, ShoppingBag, GlassWater } from "lucide-react";
 import { useCartStore, type CartSize } from "@/store/cartStore";
 import { pizzas } from "@/data/pizzas";
 
-export const PACKS: Record<CartSize, { label: string; price: number }> = {
+export type PackSize = Exclude<CartSize, "boisson">;
+
+export const PACKS: Record<PackSize, { label: string; price: number }> = {
   senior: { label: "Pack Senior", price: 23 },
   mega:   { label: "Pack Méga",   price: 33 },
 };
@@ -15,7 +17,7 @@ export const PACKS: Record<CartSize, { label: string; price: number }> = {
 const PACK_SIZE = 2;
 
 interface Props {
-  size: CartSize | null;
+  size: PackSize | null;
   onClose: () => void;
 }
 

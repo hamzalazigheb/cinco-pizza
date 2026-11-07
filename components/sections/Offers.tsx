@@ -4,8 +4,8 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import PackModal from "@/components/cart/PackModal";
-import { useCartStore, type CartSize } from "@/store/cartStore";
+import PackModal, { type PackSize } from "@/components/cart/PackModal";
+import { useCartStore } from "@/store/cartStore";
 import { DRINKS as SOLD_DRINKS, DRINK_IMAGE } from "@/data/drinks";
 
 if (typeof window !== "undefined") gsap.registerPlugin(ScrollTrigger);
@@ -18,7 +18,7 @@ const DRINKS: { id: string; label: string; volume: string; price: number | null 
 export default function Offers() {
   const sectionRef = useRef<HTMLElement>(null);
   const addItem = useCartStore((s) => s.addItem);
-  const [packSize, setPackSize] = useState<CartSize | null>(null);
+  const [packSize, setPackSize] = useState<PackSize | null>(null);
 
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
