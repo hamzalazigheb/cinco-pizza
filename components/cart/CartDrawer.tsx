@@ -357,7 +357,7 @@ export default function CartDrawer() {
                         </div>
                       </div>
                       <p className="font-ui text-[0.62rem] text-[#8C7B6A] text-center">
-                        💵 Paiement en <strong>espèces uniquement</strong> à la livraison
+                        💳 Paiement par <strong>carte bancaire ou espèces</strong> à la livraison
                       </p>
                       <button
                         onClick={() => setStep("form")}

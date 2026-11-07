@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -9,6 +9,7 @@ import {
   CheckCheck, Bell, ShoppingBag, TrendingUp,
   Banknote, Pizza, ChevronRight, Phone, MapPin,
   Building2, MessageSquare, Truck, KeyRound, AlertCircle,
+  BellOff, BellRing,
 } from "lucide-react";
 import type { Order } from "@/lib/orders";
 
@@ -417,6 +418,38 @@ function LoadingState() {
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   AUDIO — generates a short double-beep via Web Audio API
+   (no MP3 file required)
+═══════════════════════════════════════════════════════════════ */
+function playOrderBeep(ctx: AudioContext) {
+  const doDing = () => {
+    try {
+      const ding = (freq: number, startTime: number, vol = 0.5) => {
+        const osc  = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type            = "sine";
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(vol, startTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, startTime + 1.2);
+        osc.start(startTime);
+        osc.stop(startTime + 1.2);
+      };
+      ding(1046, ctx.currentTime,        0.5);  // C6
+      ding(1568, ctx.currentTime,        0.25); // G6 — harmony
+      ding(1046, ctx.currentTime + 0.35, 0.4);  // C6 again (echo)
+    } catch { /* Audio not supported */ }
+  };
+
+  if (ctx.state === "suspended") {
+    ctx.resume().then(doDing).catch(() => {});
+  } else {
+    doDing();
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
    PAGE
 ═══════════════════════════════════════════════════════════════ */
 export default function AdminPage() {
@@ -425,8 +458,82 @@ export default function AdminPage() {
   const [loading,    setLoading]    = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [updating,   setUpdating]   = useState<string | null>(null);
-  /* Mobile tab: 0=nouveau 1=prépa 2=terminé */
+  /* Mobile tab: 0=nouveau 1=prépa 2=livraison 3=terminé */
   const [tab, setTab] = useState(0);
+
+  /* ── Notifications + Audio ── */
+  const [notifPerm, setNotifPerm] = useState<NotificationPermission>("default");
+  const [audioUnlocked, setAudioUnlocked] = useState(false); // used to track unlock state internally
+  const prevNouveauIds = useRef<Set<string>>(new Set());
+  const isFirstFetch   = useRef(true);
+  const audioCtxRef    = useRef<AudioContext | null>(null);
+
+  /* Read current permission on mount */
+  useEffect(() => {
+    if (typeof Notification === "undefined") return;
+    setNotifPerm(Notification.permission);
+  }, []);
+
+  /* createAndKeepAlive — builds (or reuses) AudioContext + starts a silent
+     oscillator so Chrome never suspends the context in background tabs.    */
+  function createAndKeepAlive(): AudioContext {
+    if (!audioCtxRef.current) {
+      const AC = window.AudioContext ??
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      audioCtxRef.current = new AC();
+    }
+    const ctx = audioCtxRef.current;
+    if (!(ctx as unknown as Record<string, unknown>)["_keepAlive"]) {
+      (ctx as unknown as Record<string, unknown>)["_keepAlive"] = true;
+      /* Silent oscillator (gain = 0) — keeps ctx "running" forever */
+      const osc  = ctx.createOscillator();
+      const mute = ctx.createGain();
+      mute.gain.value = 0;
+      osc.connect(mute);
+      mute.connect(ctx.destination);
+      osc.start();         // runs forever — never stopped
+    }
+    return ctx;
+  }
+
+  /* Unlock on FIRST user interaction (click / keydown anywhere on the page) */
+  useEffect(() => {
+    const unlock = async () => {
+      if (audioCtxRef.current) return;
+      const ctx = createAndKeepAlive();
+      await ctx.resume();
+      setAudioUnlocked(true);
+      document.removeEventListener("click",   unlock);
+      document.removeEventListener("keydown", unlock);
+    };
+    document.addEventListener("click",   unlock);
+    document.addEventListener("keydown", unlock);
+    return () => {
+      document.removeEventListener("click",   unlock);
+      document.removeEventListener("keydown", unlock);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  /* Unlock AudioContext — called from user-gesture buttons */
+  async function unlockAudio(): Promise<AudioContext> {
+    const ctx = createAndKeepAlive();
+    await ctx.resume();
+    setAudioUnlocked(true);
+    return ctx;
+  }
+
+  /* Called on user click → unlocks AudioContext + requests notif permission */
+  async function requestNotifPermission() {
+    const ctx = await unlockAudio();
+    // Play a test beep so the gérant knows it works
+    playOrderBeep(ctx);
+    if (typeof Notification !== "undefined") {
+      const perm = await Notification.requestPermission();
+      setNotifPerm(perm);
+    }
+  }
+
 
   const fetchOrders = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
@@ -435,7 +542,42 @@ export default function AdminPage() {
       const res = await fetch("/api/orders");
       if (res.status === 401) { router.push("/login"); return; }
       const data = await res.json();
-      setOrders(data.orders ?? []);
+      const fetched: Order[] = data.orders ?? [];
+
+      /* ── Detect newly arrived "nouveau" orders ── */
+      if (!isFirstFetch.current) {
+        const arrived = fetched.filter(
+          (o) => o.status === "nouveau" && !prevNouveauIds.current.has(o.id)
+        );
+        if (arrived.length > 0) {
+          /* 🔊 Beep — only if AudioContext was unlocked by a prior user gesture */
+          if (audioCtxRef.current) playOrderBeep(audioCtxRef.current);
+
+          /* 🏷️ Flag the tab title when the page is in the background */
+          if (document.hidden) {
+            document.title = `(${arrived.length}) 🍕 Nouvelle commande !`;
+          }
+
+          /* 🔔 Browser notification */
+          if (typeof Notification !== "undefined" && Notification.permission === "granted") {
+            const body = arrived
+              .map((o) => `#${o.id} — ${o.total.toFixed(2)} €`)
+              .join("\n");
+            new Notification(
+              `🍕 ${arrived.length} nouvelle${arrived.length > 1 ? "s" : ""} commande${arrived.length > 1 ? "s" : ""} !`,
+              { body, icon: "/favicon.ico", tag: "new-order" }
+            );
+          }
+        }
+      }
+
+      /* Update tracked IDs */
+      prevNouveauIds.current = new Set(
+        fetched.filter((o) => o.status === "nouveau").map((o) => o.id)
+      );
+      isFirstFetch.current = false;
+
+      setOrders(fetched);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -444,9 +586,23 @@ export default function AdminPage() {
 
   useEffect(() => {
     fetchOrders();
-    const id = setInterval(() => fetchOrders(true), 15_000);
+    /* Poll every 5 s — fast enough to alert the gérant quickly */
+    const id = setInterval(() => fetchOrders(true), 5_000);
     return () => clearInterval(id);
   }, [fetchOrders]);
+
+  /* ── Tab title: flag new orders when the tab is hidden, reset on return ── */
+  useEffect(() => {
+    const baseTitle = document.title;
+    const reset = () => { if (!document.hidden) document.title = baseTitle; };
+    document.addEventListener("visibilitychange", reset);
+    window.addEventListener("focus", reset);
+    return () => {
+      document.removeEventListener("visibilitychange", reset);
+      window.removeEventListener("focus", reset);
+      document.title = baseTitle;
+    };
+  }, []);
 
   async function handleStatus(orderId: string, status: Order["status"]) {
     setUpdating(orderId);
@@ -512,6 +668,37 @@ export default function AdminPage() {
 
           {/* Right actions */}
           <div className="flex items-center gap-2 ml-auto">
+
+            {/* 🔔 Notification permission button */}
+            {notifPerm === "default" && (
+              <button
+                onClick={requestNotifPermission}
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg
+                  font-ui text-[0.72rem] text-[#B45309] hover:text-[#24221F]
+                  bg-[#FFFBEB] hover:bg-[#FEF3C7] border border-[#D9A441]/30
+                  transition cursor-pointer"
+                title="Activer les notifications sonores"
+              >
+                <BellRing className="h-3.5 w-3.5" />
+                <span className="hidden md:inline">Activer les alertes</span>
+              </button>
+            )}
+            {notifPerm === "denied" && (
+              <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg
+                font-ui text-[0.72rem] text-[#8C7B6A] border border-[#E2D5C3] bg-white/60"
+                title="Notifications bloquées par le navigateur">
+                <BellOff className="h-3.5 w-3.5" />
+                <span className="hidden md:inline">Alertes bloquées</span>
+              </div>
+            )}
+            {notifPerm === "granted" && (
+              <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg
+                font-ui text-[0.72rem] text-[#168653] border border-[#168653]/20 bg-[#F0FDF4]">
+                <Bell className="h-3.5 w-3.5" />
+                <span className="hidden md:inline">Alertes actives</span>
+              </div>
+            )}
+
             {/* New orders bell */}
             {hasNew && (
               <div className="hidden sm:flex items-center gap-1.5 bg-[#FEF0F0]

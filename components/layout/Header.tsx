@@ -64,7 +64,7 @@ export default function Header() {
 
           {/* Right actions */}
           <div className="hidden lg:flex items-center gap-4">
-            <a href="tel:+33000000000"
+            <a href="tel:+33164001010"
               className="font-ui text-[0.75rem] font-600 tracking-wide text-[#24221F]/60
                 hover:text-[#24221F] transition-colors flex items-center gap-1.5">
               <Phone className="h-3 w-3" />
@@ -125,7 +125,7 @@ export default function Header() {
                   </a>
                 ))}
               </nav>
-              <a href="tel:+33000000000" className="btn-primary w-full justify-center mt-6">
+              <a href="tel:+33164001010" className="btn-primary w-full justify-center mt-6">
                 <Phone className="h-3.5 w-3.5" />
                 Commander
               </a>

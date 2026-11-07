@@ -103,7 +103,7 @@ export default function About() {
 
         {/* ── Bottom footnote ── */}
         <p className="mt-4 text-center font-ui text-[0.62rem] text-[#B0A090]">
-          Frais de livraison : 5 € · Paiement en espèces uniquement.
+          Frais de livraison : 5 € · Paiement par carte ou espèces · Ouvert 7j/7 11h–23h
         </p>
 
       </div>

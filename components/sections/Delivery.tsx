@@ -10,9 +10,9 @@ if (typeof window !== "undefined") gsap.registerPlugin(ScrollTrigger);
 
 const steps = [
   { n: "01", title: "Choisissez",   desc: "Parcourez nos 39 pizzas artisanales.", color: "text-[#C92326]" },
-  { n: "02", title: "Appelez",      desc: "Passez votre commande par téléphone.", color: "text-[#D9A441]" },
-  { n: "03", title: "Payez",        desc: "En espèces à la livraison uniquement.", color: "text-[#526344]" },
-  { n: "04", title: "Régalez-vous", desc: "Pizza chaude livrée à domicile.",       color: "text-[#24221F]" },
+  { n: "02", title: "Commandez",    desc: "En ligne ou par téléphone 7j/7 de 11h à 23h.", color: "text-[#D9A441]" },
+  { n: "03", title: "Payez",        desc: "Par carte bancaire ou espèces à la livraison.", color: "text-[#526344]" },
+  { n: "04", title: "Régalez-vous", desc: "Pizza chaude livrée à domicile en ~30 min.", color: "text-[#24221F]" },
 ];
 
 export default function Delivery() {
@@ -83,12 +83,12 @@ export default function Delivery() {
               <p className="font-ui text-[#8C7B6A] text-[0.6rem] uppercase tracking-widest mb-4">
                 Passez votre commande
               </p>
-              <a href="tel:+33000000000" className="btn-primary flex items-center gap-2 w-fit">
+              <a href="tel:+33164001010" className="btn-primary flex items-center gap-2 w-fit">
                 <Phone className="h-4 w-4" />
                 Appeler maintenant
               </a>
               <p className="mt-4 text-[#8C7B6A] text-xs font-ui">
-                Frais de livraison : 5 € · Paiement en espèces uniquement.
+                Frais de livraison : 5 € · Paiement par carte ou espèces · Ouvert 7j/7 11h–23h
               </p>
             </div>
           </div>

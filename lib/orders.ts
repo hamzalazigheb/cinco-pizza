@@ -30,14 +30,27 @@ export interface Order {
   deliveryCode: string; // 4-digit PIN shown to customer, entered by driver
 }
 
+type OrderListener = (order: Order) => void;
+
 declare global {
   // eslint-disable-next-line no-var
   var __cinco_orders: Order[] | undefined;
+  // eslint-disable-next-line no-var
+  var __cinco_listeners: Set<OrderListener> | undefined;
 }
 
 /* Initialise once per process */
 if (!globalThis.__cinco_orders) {
   globalThis.__cinco_orders = [];
+}
+if (!globalThis.__cinco_listeners) {
+  globalThis.__cinco_listeners = new Set();
+}
+
+/* Subscribe to new orders (used by the admin SSE stream). Returns unsubscribe fn. */
+export function onNewOrder(listener: OrderListener): () => void {
+  globalThis.__cinco_listeners!.add(listener);
+  return () => { globalThis.__cinco_listeners!.delete(listener); };
 }
 
 export function getOrders(): Order[] {
@@ -59,6 +72,9 @@ export function addOrder(
     deliveryCode: Math.floor(1000 + Math.random() * 9000).toString(),
   };
   globalThis.__cinco_orders!.unshift(order); // newest first
+  globalThis.__cinco_listeners!.forEach((fn) => {
+    try { fn(order); } catch { /* ignore broken listener */ }
+  });
   return order;
 }
 

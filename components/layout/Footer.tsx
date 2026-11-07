@@ -29,9 +29,7 @@ const navLinks = [
 ];
 
 const hours = [
-  { day: "Lun – Ven", time: "11h30 – 14h30 / 18h00 – 22h30" },
-  { day: "Samedi",    time: "11h30 – 23h00" },
-  { day: "Dimanche",  time: "12h00 – 22h00" },
+  { day: "7j/7 — Tous les jours", time: "11h00 – 23h00" },
 ];
 
 export default function Footer() {
@@ -114,19 +112,19 @@ export default function Footer() {
             <ul className="space-y-3 mb-6">
               <li className="flex items-start gap-2.5">
                 <Phone className="h-3.5 w-3.5 text-[#C92326] mt-0.5 shrink-0" />
-                <a href="tel:+33000000000"
+                <a href="tel:+33164001010"
                   className="font-ui text-[0.8rem] text-[#F5EBDD]/70 hover:text-[#F5EBDD] transition-colors">
-                  06 00 00 00 00
+                  01.64.00.10.10
                 </a>
               </li>
               <li className="flex items-start gap-2.5">
                 <MapPin className="h-3.5 w-3.5 text-[#C92326] mt-0.5 shrink-0" />
                 <span className="font-ui text-[0.78rem] text-[#F5EBDD]/50 leading-relaxed">
-                  123 Rue de la Pizza<br />75000 Paris, France
+                  10 Rue des Bordes<br />77160 Provins
                 </span>
               </li>
             </ul>
-            <a href="tel:+33000000000" className="btn-primary w-full justify-center text-[0.72rem] py-3">
+            <a href="tel:+33164001010" className="btn-primary w-full justify-center text-[0.72rem] py-3">
               <Phone className="h-3.5 w-3.5" />
               Commander par téléphone
             </a>
