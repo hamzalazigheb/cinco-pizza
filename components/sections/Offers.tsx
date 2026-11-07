@@ -112,10 +112,10 @@ export default function Offers() {
           </div>
         </div>
 
-        {/* Promotions strip */}
-        <div className="mt-4 rounded-xl sm:rounded-2xl overflow-hidden aspect-[16/7] sm:aspect-[21/6] relative">
-          <Image src="/images/promotions.png" alt="Promotions Cinco Pizza" fill className="object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#24221F]/15 to-transparent" />
+        {/* Banner sous les offres */}
+        <div className="mt-4 rounded-xl sm:rounded-2xl overflow-hidden relative bg-black"
+          style={{ aspectRatio: "1200 / 400" }}>
+          <Image src="/banner.png" alt="Cinco Pizza" fill className="object-contain object-center" />
         </div>
 
         <p className="mt-4 text-center text-[0.65rem] sm:text-xs text-[#8C7B6A] font-ui">
