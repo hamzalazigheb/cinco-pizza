@@ -5,7 +5,7 @@
 
 export interface OrderItem {
   name:        string;
-  size:        "senior" | "mega";
+  size:        "senior" | "mega" | "boisson";
   quantity:    number;
   price:       number;
   ingredients: string[];

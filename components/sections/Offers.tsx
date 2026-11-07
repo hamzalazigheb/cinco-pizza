@@ -5,12 +5,19 @@ import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import PackModal from "@/components/cart/PackModal";
-import type { CartSize } from "@/store/cartStore";
+import { useCartStore, type CartSize } from "@/store/cartStore";
+import { DRINKS as SOLD_DRINKS, DRINK_IMAGE } from "@/data/drinks";
 
 if (typeof window !== "undefined") gsap.registerPlugin(ScrollTrigger);
 
+const DRINKS: { id: string; label: string; volume: string; price: number | null }[] = [
+  ...SOLD_DRINKS,
+  { id: "boisson-maxi", label: "Maxi Boisson", volume: "Maxi Boisson", price: null },
+];
+
 export default function Offers() {
   const sectionRef = useRef<HTMLElement>(null);
+  const addItem = useCartStore((s) => s.addItem);
   const [packSize, setPackSize] = useState<CartSize | null>(null);
 
   useEffect(() => {
@@ -99,14 +106,31 @@ export default function Offers() {
             🥤 Boissons
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {[
-              { label: "Boisson 33cl", price: "1,50 €" },
-              { label: "Boisson 1,5L", price: "3,00 €" },
-              { label: "Maxi Boisson", price: "incluse dans les packs" },
-            ].map((b) => (
-              <div key={b.label} className="bg-white rounded-xl px-4 py-3 border border-[#EDE3D3] flex flex-col gap-1">
-                <span className="font-ui text-[0.72rem] text-[#6B5F52]">{b.label}</span>
-                <span className="font-display text-lg text-[#C92326]">{b.price}</span>
+            {DRINKS.map((b) => (
+              <div key={b.label} className="bg-white rounded-xl px-4 py-3 border border-[#EDE3D3] flex items-center justify-between gap-3">
+                <div className="flex flex-col gap-1">
+                  <span className="font-ui text-[0.72rem] text-[#6B5F52]">{b.label}</span>
+                  <span className="font-display text-lg text-[#C92326]">
+                    {b.price !== null ? `${b.price.toFixed(2).replace(".", ",")} €` : "incluse dans les packs"}
+                  </span>
+                </div>
+                {b.price !== null && (
+                  <button
+                    type="button"
+                    onClick={() => addItem({
+                      pizzaId:     b.id,
+                      name:        b.label,
+                      image:       DRINK_IMAGE,
+                      size:        "boisson",
+                      price:       b.price!,
+                      ingredients: [b.volume],
+                    })}
+                    className="shrink-0 bg-[#C92326] hover:bg-[#A91D20] text-white
+                      font-ui font-600 text-xs px-4 py-2 rounded-full transition-colors cursor-pointer"
+                  >
+                    + Ajouter
+                  </button>
+                )}
               </div>
             ))}
           </div>

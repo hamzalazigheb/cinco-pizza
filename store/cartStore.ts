@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-export type CartSize = "senior" | "mega";
+export type CartSize = "senior" | "mega" | "boisson";
 
 export interface CartItem {
   cartId:      string;   // unique per cart line (pizzaId + size + ingredients hash)

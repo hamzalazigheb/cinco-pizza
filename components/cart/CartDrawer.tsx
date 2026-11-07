@@ -8,10 +8,11 @@ import {
   ArrowLeft, User, Phone, MapPin, Building2, MessageSquare, KeyRound,
 } from "lucide-react";
 import { useCartStore } from "@/store/cartStore";
+import { DRINKS, DRINK_IMAGE } from "@/data/drinks";
 
-const sizeLabel = { senior: "Senior", mega: "Méga" };
+const sizeLabel = { senior: "Senior", mega: "Méga", boisson: "Boisson" };
 
-type Step = "cart" | "form" | "success";
+type Step = "cart" | "drinks" | "form" | "success";
 
 interface CustomerForm {
   name:    string;
@@ -70,10 +71,11 @@ function InputField({
 }
 
 export default function CartDrawer() {
-  const { items, isOpen, closeCart, removeItem, updateQty, clearCart, total, count } =
+  const { items, isOpen, closeCart, addItem, removeItem, updateQty, clearCart, total, count } =
     useCartStore();
 
   const [step,       setStep]       = useState<Step>("cart");
+  const [drinkQty,   setDrinkQty]   = useState<Record<string, number>>({});
   const [customer,   setCustomer]   = useState<CustomerForm>({
     name: "", phone: "", address: "", floor: "", note: "",
   });
@@ -141,7 +143,39 @@ export default function CartDrawer() {
     }
   }
 
+  const hasDrink      = items.some((i) => i.size === "boisson");
+  const drinksToAdd   = Object.values(drinkQty).reduce((s, n) => s + n, 0);
+  const drinksPrice   = DRINKS.reduce((s, d) => s + d.price * (drinkQty[d.id] ?? 0), 0);
+
+  function changeDrink(id: string, delta: number) {
+    setDrinkQty((q) => ({ ...q, [id]: Math.max(0, Math.min(20, (q[id] ?? 0) + delta)) }));
+  }
+
+  /* "Continuer" from the cart: offer drinks first if none in the cart yet */
+  function goAfterCart() {
+    setStep(hasDrink ? "form" : "drinks");
+  }
+
+  /* Add the chosen drinks to the cart, then go to the delivery form */
+  function confirmDrinks() {
+    DRINKS.forEach((d) => {
+      for (let n = 0; n < (drinkQty[d.id] ?? 0); n++) {
+        addItem({
+          pizzaId:     d.id,
+          name:        d.label,
+          image:       DRINK_IMAGE,
+          size:        "boisson",
+          price:       d.price,
+          ingredients: [d.volume],
+        });
+      }
+    });
+    setDrinkQty({});
+    setStep("form");
+  }
+
   function handleClose() {
+    setDrinkQty({});
     setOrderId(null);
     setDelivCode(null);
     setOrderError("");
@@ -178,7 +212,7 @@ export default function CartDrawer() {
             {/* ── Header ── */}
             <div className="flex items-center justify-between px-6 py-5 border-b border-[#E2D5C3] shrink-0">
               <div className="flex items-center gap-3">
-                {step === "form" && (
+                {(step === "form" || step === "drinks") && (
                   <button
                     onClick={() => setStep("cart")}
                     className="w-7 h-7 rounded-full bg-white flex items-center justify-center
@@ -190,6 +224,7 @@ export default function CartDrawer() {
                 <ShoppingBag className="h-5 w-5 text-[#C92326]" />
                 <h2 className="font-display text-xl text-[#24221F]">
                   {step === "cart"    && "Mon panier"}
+                  {step === "drinks"  && "Une boisson ?"}
                   {step === "form"    && "Vos infos"}
                   {step === "success" && "Commande envoyée !"}
                 </h2>
@@ -210,7 +245,7 @@ export default function CartDrawer() {
             </div>
 
             {/* ── Step indicator ── */}
-            {step !== "success" && (
+            {step !== "success" && step !== "drinks" && (
               <div className="flex items-center gap-2 px-6 pt-3 pb-1 shrink-0">
                 {(["cart", "form"] as const).map((s, i) => (
                   <div key={s} className="flex items-center gap-2">
@@ -297,7 +332,9 @@ export default function CartDrawer() {
                                     uppercase tracking-wide px-2 py-0.5 rounded-full mt-1
                                     ${item.size === "senior"
                                       ? "bg-[#FEF0F0] text-[#C92326]"
-                                      : "bg-[#FBF5E8] text-[#8A6420]"
+                                      : item.size === "boisson"
+                                        ? "bg-[#EFF6FF] text-[#1D4ED8]"
+                                        : "bg-[#FBF5E8] text-[#8A6420]"
                                     }`}>
                                     {sizeLabel[item.size]}
                                   </span>
@@ -360,7 +397,7 @@ export default function CartDrawer() {
                         💳 Paiement par <strong>carte bancaire ou espèces</strong> à la livraison
                       </p>
                       <button
-                        onClick={() => setStep("form")}
+                        onClick={goAfterCart}
                         className="btn-primary w-full justify-center gap-2.5 text-sm py-3.5 cursor-pointer"
                       >
                         <ArrowLeft className="h-4 w-4 rotate-180" />
@@ -375,6 +412,86 @@ export default function CartDrawer() {
                       </button>
                     </div>
                   )}
+                </motion.div>
+              )}
+
+              {/* ════════════════════════════════════════
+                  STEP 1b — DRINKS UPSELL
+              ════════════════════════════════════════ */}
+              {step === "drinks" && (
+                <motion.div
+                  key="step-drinks"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  transition={{ duration: 0.18 }}
+                  className="flex-1 flex flex-col min-h-0"
+                >
+                  <div className="flex-1 overflow-y-auto px-5 py-5 space-y-4">
+                    <div>
+                      <p className="font-display text-lg text-[#24221F]">
+                        Voulez-vous une boisson avec votre commande ?
+                      </p>
+                      <p className="font-ui text-[0.72rem] text-[#8C7B6A] mt-1">
+                        Choisissez la quantité, ou continuez sans boisson.
+                      </p>
+                    </div>
+
+                    {DRINKS.map((d) => {
+                      const qty = drinkQty[d.id] ?? 0;
+                      return (
+                        <div key={d.id}
+                          className={`bg-white rounded-2xl p-4 border flex items-center gap-3 transition-colors
+                            ${qty > 0 ? "border-[#C92326]/40" : "border-[#EDE3D3]"}`}
+                        >
+                          <div className="relative w-14 h-14 rounded-xl overflow-hidden shrink-0">
+                            <Image src={DRINK_IMAGE} alt={d.label} fill className="object-cover" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-display text-[0.95rem] text-[#24221F] leading-tight">{d.label}</h4>
+                            <span className="font-display text-base text-[#C92326]">
+                              {d.price.toFixed(2).replace(".", ",")} €
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 bg-[#F9F5EF] rounded-full px-2.5 py-1.5">
+                            <button
+                              type="button"
+                              onClick={() => changeDrink(d.id, -1)}
+                              disabled={qty === 0}
+                              className="w-6 h-6 rounded-full bg-white flex items-center justify-center
+                                text-[#24221F] shadow-sm hover:bg-[#EDE3D3] transition cursor-pointer
+                                disabled:opacity-40 disabled:cursor-not-allowed"
+                              aria-label={`Moins de ${d.label}`}
+                            >
+                              <Minus className="h-3 w-3" />
+                            </button>
+                            <span className="font-ui font-700 text-sm text-[#24221F] w-5 text-center">{qty}</span>
+                            <button
+                              type="button"
+                              onClick={() => changeDrink(d.id, 1)}
+                              className="w-6 h-6 rounded-full bg-[#C92326] flex items-center justify-center
+                                text-white shadow-sm hover:bg-[#A91D20] transition cursor-pointer"
+                              aria-label={`Plus de ${d.label}`}
+                            >
+                              <Plus className="h-3 w-3" />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div className="shrink-0 px-4 sm:px-5 py-4 border-t border-[#E2D5C3] bg-[#F5EBDD] space-y-2">
+                    <button
+                      type="button"
+                      onClick={confirmDrinks}
+                      className="btn-primary w-full justify-center gap-2.5 text-sm py-3.5 cursor-pointer"
+                    >
+                      {drinksToAdd > 0
+                        ? `Ajouter ${drinksToAdd} boisson${drinksToAdd > 1 ? "s" : ""} (+${drinksPrice.toFixed(2)} €) et continuer`
+                        : "Non merci, continuer"}
+                    </button>
+                  </div>
                 </motion.div>
               )}
 

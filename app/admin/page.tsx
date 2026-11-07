@@ -199,8 +199,8 @@ function OrderCard({
                     {item.name}
                   </span>
                   <span className={`font-ui text-[0.58rem] font-600 uppercase px-1.5 py-0.5
-                    rounded-full ${item.size === "senior" ? "bg-[#FEF0F0] text-[#C92326]" : "bg-[#FBF5E8] text-[#8A6420]"}`}>
-                    {item.size === "senior" ? "Senior" : "Méga"} ×{item.quantity}
+                    rounded-full ${item.size === "senior" ? "bg-[#FEF0F0] text-[#C92326]" : item.size === "boisson" ? "bg-[#EFF6FF] text-[#1D4ED8]" : "bg-[#FBF5E8] text-[#8A6420]"}`}>
+                    {item.size === "senior" ? "Senior" : item.size === "boisson" ? "Boisson" : "Méga"} ×{item.quantity}
                   </span>
                 </div>
                 <p className="font-ui text-[0.6rem] text-[#8C7B6A] truncate mt-0.5">
