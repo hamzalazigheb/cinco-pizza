@@ -68,7 +68,7 @@ export default function Header() {
               className="font-ui text-[0.75rem] font-600 tracking-wide text-[#24221F]/60
                 hover:text-[#24221F] transition-colors flex items-center gap-1.5">
               <Phone className="h-3 w-3" />
-              06 00 00 00 00
+              01.64.00.10.10
             </a>
             <a href="#menu" className="btn-primary py-2.5 px-5 text-[0.72rem]">
               Commander
